@@ -1,0 +1,19 @@
+[package]
+name = "xbattery"
+version = "0.1.0"
+edition = "2024"
+description = "xbattory is a simple utility to get information about notebook's battery on Linux"
+authors = ["Michail Krasnov <michail383krasnov@mail.ru>"]
+license = "MIT"
+
+[profile.release]
+lto = true
+strip = true
+debug = false
+panic = "abort"
+opt-level = "s"
+
+[dependencies]
+anyhow = "1.0.98"
+# iced = { version = "0.13.1", default-features = false, features = ["tiny-skia", "image", "svg", "tokio"] }
+iced = { version = "0.13.1", features = ["image", "svg", "tokio"] }
