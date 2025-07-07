@@ -1,9 +1,12 @@
 //! Graphic user interface based on `iced`
 
+use std::time::Duration;
+
 use iced::{
     Alignment::Center,
-    Color, Element, Settings, Theme,
+    Color, Element, Settings, Subscription, Task, Theme,
     alignment::Horizontal,
+    time,
     widget::{button, center, column, container, horizontal_space, image, row, svg, text},
 };
 
@@ -18,6 +21,7 @@ pub fn ui() -> iced::Result {
         .window_size([430., 290.])
         .antialiasing(true)
         .theme(XBattory::theme)
+        .subscription(XBattory::subscription)
         .run()
 }
 
@@ -30,6 +34,7 @@ struct XBattory {
 #[derive(Debug, Clone)]
 enum Message {
     SelectPage(Page),
+    ReadUevent,
 }
 
 #[derive(Debug, Clone, Default, Eq, PartialEq)]
@@ -236,15 +241,19 @@ impl Page {
     }
 }
 
+fn get_uevent(path: &str) -> Option<Uevent> {
+    match Uevent::new(path) {
+        Ok(uevent) => Some(uevent),
+        Err(_) => None,
+    }
+}
+
 impl Default for XBattory {
     fn default() -> Self {
         Self {
             current_page: Page::default(),
             previous_page: None,
-            uevent: match Uevent::new(r"C:\Users\Миша\uevent") {
-                Ok(uevent) => Some(uevent),
-                Err(_) => None,
-            },
+            uevent: get_uevent("/sys/class/power_supply/BAT0/uevent"),
         }
     }
 }
@@ -254,13 +263,23 @@ impl XBattory {
         Theme::Dark
     }
 
-    fn update(&mut self, message: Message) {
+    fn subscription(&self) -> Subscription<Message> {
+        Subscription::batch([time::every(Duration::from_secs(1)).map(|_| Message::ReadUevent)])
+    }
+
+    fn update(&mut self, message: Message) -> Task<Message> {
         match message {
             Message::SelectPage(page) => {
                 if page == Page::Settings || page == Page::About {
                     self.previous_page = Some(self.current_page.clone());
                 }
                 self.current_page = page;
+
+                Task::none()
+            }
+            Message::ReadUevent => {
+                self.uevent = get_uevent("/sys/class/power_supply/BAT0/uevent");
+                Task::none()
             }
         }
     }
