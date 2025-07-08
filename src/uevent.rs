@@ -109,6 +109,7 @@ pub enum Status {
     Full,
     Discharging,
     Charging,
+    NotCharging,
     Unknown,
 }
 
@@ -132,6 +133,7 @@ impl Display for Status {
                 Self::Full => "Full",
                 Self::Discharging => "Discharging",
                 Self::Charging => "Charging",
+                Self::NotCharging => "Not charging",
                 Self::Unknown => "???",
             }
         )
